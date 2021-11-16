@@ -1,75 +1,61 @@
+#include <Ultrasonic.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
-#include <Ultrasonic.h>
 
 #define PINO_TRIGGER 3
 #define PINO_ECHO 2
-#define PINO_BOTAO 4
+#define PINO_BT_UN 4
 #define TAXA_ATUALIZACAO 1000
 
 enum Unidades {
-  CM,
+  CMT,
   POL,
-  M,
+  MT,
   PES
 };
 
-Ultrasonic sensorUltrassonico(PINO_TRIGGER, PINO_ECHO);
+Ultrasonic sensor(PINO_TRIGGER, PINO_ECHO);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
-Unidades unidade = CM;
-long tempo_ref = 0;
+Unidades unidade = CMT;
 
-float calcularDistancia(); //calcula em cm
-void imprimirDistancia(float distancia);
- 
 void setup()
 {
-  pinMode(PINO_BOTAO, INPUT);
+  pinMode(PINO_BT_UN, INPUT);
   lcd.init();
   lcd.backlight();
 }
- 
+
 void loop()
 {
-  float distancia = medirDistancia();
-  imprimirDistancia(distancia);
-
-  tempo_ref = millis();
-  while(millis       () - tempo_ref < TAXA_ATUALIZACAO) {
-    if(digitalRead(PINO_BOTAO)) {
-      unidade = unidade<PES?unidade+1:CM;
-      while(digitalRead(PINO_BOTAO));
-      break;
-    }
-  }
-}
-
-
-float medirDistancia() {
-  long tempo = sensorUltrassonico.timing();
-  float distancia = sensorUltrassonico.convert(tempo, Ultrasonic::CM);
-  return distancia;
-}
-
-void imprimirDistancia(float distancia) {
-  String str = "";
-  switch(unidade) {
-    case POL:
-      str += String(distancia/2.51) + " pol.";
-      break;
-    case M:
-      str += String(distancia/100.0) + " m";
-      break;
-    case PES:
-      str += String(distancia/30.12) + " pes";
-      break;
-    default:
-      str += String(distancia) + " cm";
-  }
-  
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print(F("Distancia:"));
   lcd.setCursor(0, 1);
-  lcd.print(str);
+  
+  float distancia = sensor.read();
+  String texto = "";
+  switch (unidade) {
+    case POL:
+      texto+=String(distancia /= 2.51) + " pol";
+      break;
+    case MT:
+      texto+=String(distancia /= 100.00) + " m";
+      break;
+    case PES:
+      texto+=String(distancia /= 30,12) + " pes";
+      break;
+    default:
+      texto+=String(distancia) + " cm";
+  }
+  
+  lcd.print(texto);
+
+  long tempo_ref = millis();
+  while (millis() - tempo_ref < TAXA_ATUALIZACAO) {
+    if (digitalRead(PINO_BT_UN)) {
+      unidade = unidade < PES ? unidade + 1 : CMT;
+      while (digitalRead(PINO_BT_UN));
+      break;
+    }
+  }
 }
