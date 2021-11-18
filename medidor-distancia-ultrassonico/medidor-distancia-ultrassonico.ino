@@ -1,6 +1,6 @@
 #include <Ultrasonic.h>
 #include <LiquidCrystal_I2C.h>
-#include <Wire.h>
+//#include <Wire.h>
 
 #define PINO_TRIGGER 3
 #define PINO_ECHO 2
