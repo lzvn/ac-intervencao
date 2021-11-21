@@ -29,8 +29,9 @@ void calcularPitagoras();
 
 float converter(float distancia); //Converte de cm para qualquer outra unidade
 
-void imprimir(String linha1, String linha2);
 void imprimirDistancia(float distancia);
+void imprimirUnidade(boolean area = false);
+void transicaoTela(String str);
 
 void setup()
 {
@@ -56,11 +57,13 @@ void loop()
     
     if(!digitalRead(BT_AREA)) {
       calcularArea();
+      while(!digitalRead(BT_AREA));
       break;
     }
     
     if(!digitalRead(BT_PITAGORAS)) {
       calcularPitagoras();
+      while(!digitalRead(BT_PITAGORAS));
       break;
     }
   }
@@ -71,11 +74,77 @@ float medirDistancia() {
 }
 
 void calcularArea() {
-  
+  while(!digitalRead(BT_AREA));
+
+  transicaoTela("Calculo de area");  
+  float area = 0;
+
+  for(int i = 0; i < 2; i++) {
+    transicaoTela(i==0?"Comprimento":"Largura");
+    
+    boolean distanciaMedida = false;
+    while(!distanciaMedida) {
+      float distancia = medirDistancia();
+      imprimirDistancia(distancia);
+
+      int tempo_ref = millis();
+      while(millis() - tempo_ref < TAXA_ATUALIZACAO) {
+        if(!digitalRead(BT_AREA)) {
+          area = i==0 ? distancia: area*distancia;
+          distanciaMedida=true;
+          while(!digitalRead(BT_AREA));
+          break;
+        }
+      }
+    }
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(F("Area "));
+  lcd.setCursor(0, 1);
+  lcd.print(String(area));
+  lcd.print(F(" "));
+  imprimirUnidade(true);
+
+  while(digitalRead(BT_AREA));
 }
 
 void calcularPitagoras() {
-  
+  while(!digitalRead(BT_PITAGORAS));
+
+  transicaoTela("Calc. Pitagórico");
+
+  float altura = 0;
+
+  for(int i = 0; i < 2; i++) {
+    transicaoTela(i==0?"Hipotenusa":"Cateto");
+    
+    boolean distanciaMedida = false;
+    while(!distanciaMedida) {
+      float distancia = medirDistancia();
+      imprimirDistancia(distancia);
+
+      int tempo_ref = millis();
+      while(millis() - tempo_ref < TAXA_ATUALIZACAO) {
+        if(!digitalRead(BT_PITAGORAS)) {
+          altura = i==0 ? distancia: sqrt(altura*altura - distancia*distancia);
+          distanciaMedida=true;
+          while(!digitalRead(BT_PITAGORAS));
+          break;
+        }
+      }
+    }
+  }
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(F("Altura "));
+  lcd.setCursor(0, 1);
+  lcd.print(String(altura));
+  lcd.print(F(" "));
+  imprimirUnidade();
+
+  while(digitalRead(BT_PITAGORAS));
 }
 
 float converter(float distancia) {
@@ -89,14 +158,6 @@ float converter(float distancia) {
     case PES:
     return distancia/30.12;
   }
-}
-
-void imprimir(String linha1, String linha2) {
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(linha1);
-  lcd.setCursor(0, 1);
-  lcd.print(linha2);
 }
 
 void imprimirDistancia(float distancia) {
@@ -114,15 +175,32 @@ void imprimirDistancia(float distancia) {
   distancia = converter(distancia);
   lcd.print(String(distancia));
   lcd.print(F(" "));
+  imprimirUnidade();
+}
 
-  switch(unidade) {
+void imprimirUnidade(boolean area = false) {
+    switch(unidade) {
     case CMT:
     lcd.print(F("cm"));
+    break;
     case POL:
     lcd.print(F("pol"));
+    break;
     case MT:
     lcd.print(F("m"));
+    break;
     case PES:
     lcd.print(F("pes"));
+    break;
   }
+  if(area) {
+    lcd.print(F("^2"));
+  }
+}
+
+void transicaoTela(String str) {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(str);
+  delay(700);
 }
