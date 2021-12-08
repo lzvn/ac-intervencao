@@ -1,16 +1,14 @@
 #include <Ultrasonic.h>
 #include <LiquidCrystal_I2C.h>
-//#include <Wire.h>
 
 #define PINO_TRIGGER 3
 #define PINO_ECHO 2
 
 #define BT_CONVERSAO 4
-#define BT_AREA 5
-#define BT_PITAGORAS 6
+#define BT_ALTURA 5
 
 #define TAXA_ATUALIZACAO 1000
-#define DISTANCIA_MAX 400 //4m
+#define DISTANCIA_MAX 350 //3,5m
 
 enum Unidades {
   CMT,
@@ -23,28 +21,24 @@ Ultrasonic sensor(PINO_TRIGGER, PINO_ECHO);
 LiquidCrystal_I2C lcd(0x27, 20, 4);
 Unidades unidade = CMT;
 
-float medirDistancia();
-void calcularArea();
 void calcularPitagoras();
 
 float converter(float distancia); //Converte de cm para qualquer outra unidade
 
 void imprimirDistancia(float distancia);
-void imprimirUnidade(boolean area = false);
+void imprimirUnidade();
 void transicaoTela(String str);
 
-void setup()
-{
+void setup() {
   pinMode(BT_CONVERSAO, INPUT_PULLUP);
-  pinMode(BT_AREA, INPUT_PULLUP);
-  pinMode(BT_PITAGORAS, INPUT_PULLUP);
+  pinMode(BT_ALTURA, INPUT_PULLUP);
   lcd.init();
   lcd.backlight();
 }
 
 void loop()
 {
-  float distancia = medirDistancia();
+  float distancia = sensor.read();
   imprimirDistancia(distancia);
   
   long tempo_ref = millis();
@@ -55,62 +49,16 @@ void loop()
       break;
     }
     
-    if(!digitalRead(BT_AREA)) {
-      calcularArea();
-      while(!digitalRead(BT_AREA));
-      break;
-    }
-    
-    if(!digitalRead(BT_PITAGORAS)) {
+    if(!digitalRead(BT_ALTURA)) {
       calcularPitagoras();
-      while(!digitalRead(BT_PITAGORAS));
+      while(!digitalRead(BT_ALTURA));
       break;
     }
   }
-}
-
-float medirDistancia() {
-  return sensor.read();
-}
-
-void calcularArea() {
-  while(!digitalRead(BT_AREA));
-
-  transicaoTela("Calculo de area");  
-  float area = 0;
-
-  for(int i = 0; i < 2; i++) {
-    transicaoTela(i==0?"Comprimento":"Largura");
-    
-    boolean distanciaMedida = false;
-    while(!distanciaMedida) {
-      float distancia = medirDistancia();
-      imprimirDistancia(distancia);
-
-      int tempo_ref = millis();
-      while(millis() - tempo_ref < TAXA_ATUALIZACAO) {
-        if(!digitalRead(BT_AREA)) {
-          area = i==0 ? distancia: area*distancia;
-          distanciaMedida=true;
-          while(!digitalRead(BT_AREA));
-          break;
-        }
-      }
-    }
-  }
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print(F("Area "));
-  lcd.setCursor(0, 1);
-  lcd.print(String(area));
-  lcd.print(F(" "));
-  imprimirUnidade(true);
-
-  while(digitalRead(BT_AREA));
 }
 
 void calcularPitagoras() {
-  while(!digitalRead(BT_PITAGORAS));
+  while(!digitalRead(BT_ALTURA));
 
   transicaoTela("Calc. Pitagórico");
 
@@ -121,15 +69,15 @@ void calcularPitagoras() {
     
     boolean distanciaMedida = false;
     while(!distanciaMedida) {
-      float distancia = medirDistancia();
+      float distancia = sensor.read();
       imprimirDistancia(distancia);
 
       int tempo_ref = millis();
       while(millis() - tempo_ref < TAXA_ATUALIZACAO) {
-        if(!digitalRead(BT_PITAGORAS)) {
+        if(!digitalRead(BT_ALTURA)) {
           altura = i==0 ? distancia: sqrt(altura*altura - distancia*distancia);
           distanciaMedida=true;
-          while(!digitalRead(BT_PITAGORAS));
+          while(!digitalRead(BT_ALTURA));
           break;
         }
       }
@@ -144,7 +92,7 @@ void calcularPitagoras() {
   lcd.print(F(" "));
   imprimirUnidade();
 
-  while(digitalRead(BT_PITAGORAS));
+  while(digitalRead(BT_ALTURA));
 }
 
 float converter(float distancia) {
@@ -178,7 +126,7 @@ void imprimirDistancia(float distancia) {
   imprimirUnidade();
 }
 
-void imprimirUnidade(boolean area = false) {
+void imprimirUnidade() {
     switch(unidade) {
     case CMT:
     lcd.print(F("cm"));
@@ -192,9 +140,6 @@ void imprimirUnidade(boolean area = false) {
     case PES:
     lcd.print(F("pes"));
     break;
-  }
-  if(area) {
-    lcd.print(F("^2"));
   }
 }
 
