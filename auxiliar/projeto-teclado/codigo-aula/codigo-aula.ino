@@ -21,11 +21,11 @@ struct Tecla {
 
   Tecla(int novoPino, int novaNota) {
     pino = novoPino;
-    nota -> novaNota;
+    nota = novaNota;
   }
-}
+};
 
-Tecla teclas[NUM_TECLAS] {
+Tecla teclas[NUM_TECLAS] = {
   Tecla(13, NOTE_C4),
   Tecla(12, NOTE_CS4),
   Tecla(11, NOTE_D4),
@@ -38,10 +38,10 @@ Tecla teclas[NUM_TECLAS] {
   Tecla(4, NOTE_A4),
   Tecla(3, NOTE_AS4),
   Tecla(A0, NOTE_B4),
-}
+};
 
 void setup() {
-  for(int i = 0; i < NUM_TECLAS; I++) {
+  for(int i = 0; i < NUM_TECLAS; i++) {
     pinMode(teclas[i].pino, INPUT_PULLUP);
   }
 
