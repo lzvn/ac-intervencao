@@ -2,8 +2,8 @@
 #include <LiquidCrystal_I2C.h>
 
 //pinos do sensor
-#define PINO_TRIGGER 2
-#define PINO_ECHO 3
+#define PINO_TRIGGER 3
+#define PINO_ECHO 2
 
 //pinos dos botões
 #define BT_CONVERSAO 4 //botão de conversão de unidades
@@ -51,12 +51,13 @@ void loop() {
   //mensagem em caso de distâncias fora da escala
   if(distancia < 0) {
      lcd.print("fora de escala");
+     delay(TAXA_ATUALIZACAO);
      return;
   }
 
   //escrita da distância e unidade no display
   lcd.print(String(distancia) + " ");
-   imprimirUnidade();
+  imprimirUnidade();
 
   //verificação dos botões no restante do tempo antes de atualização do display
   long tempo_ref = millis(); //referência de tempo
@@ -132,6 +133,7 @@ void calcularArea() {
   //variáveis dos lados
   float a;
   float b;
+  float distancia;
   
   boolean mensurado; //variável para confirmação da medição dos lados
 
